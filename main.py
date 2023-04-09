@@ -4,6 +4,9 @@ We use two threads to represent each system and four queues to represent each li
 """
 import threading
 import queue
+import calculator
+
+calculator.user_input(0, 0, 0)
 
 def aggregator(arinc_to_agg, arinc_to_cal, afdx_to_agg, afdx_to_cal):
     # arinc_to_agg.get()
