@@ -19,16 +19,6 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
     angle_attaque = float(input("Entrez l'angle d'attaque (degrés) : "))
 
     while True:
-        #******************************************* AFFICHAGE **********************************************
-
-        # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
-        print(f"Altitude actuelle (pieds) : {altitude_actuelle}")
-        print(f"Vitesse actuelle (pieds/sec) : {vitesse_actuelle}")
-        print(f"Puissance moteur (W) : {puissance_moteur}")
-        print(f"État système : {etat_systeme}")
-        print(f"Temps écoulé (s) : {temps_ecoule}")
-
-
         #************************************* RAFRAICHISSEMENT & CLOCK **********************************************
 
         # Pause de 1 seconde avant d'actualiser les valeurs (va changer la réactivité de notre système)
@@ -41,14 +31,18 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         #************************************** FONCTIONS DE CONVERSION ******************************************
         
         # Conversion du taux de montée entré par l'utilisateur (m/min -> pieds/s)
-        taux_monte_convertit = (taux_monte*3.28084)/60 # 1 m = 3.28084 pieds
+        # taux_monte_convertit = (taux_monte*3.28084)/60 # 1 m = 3.28084 pieds
         
         # Conversion de la vitesse actuelle (pieds/s -> km/h)
-        # À faire
+        # vitesse_actuelle_convertit = (vitesse_actuelle/3.28084)*3600
+
 
         #********************************************** GROUND ******************************************
 
         if etat_systeme == "GROUND":
+            # Vitesse initiale nulle
+            vitesse_actuelle_convertit = 0
+
             # Si l'utilisateur entre une valeur d'altitude désirée de 0
             while altitude_desiree == 0:
                 altitude_desiree = float(input("Veuillez entrez une altitude supérieure à 0 : "))
@@ -80,6 +74,12 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
             # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
             vitesse_actuelle = 5.468 / math.sin(math.radians(angle_attaque)) # 100m/min -> 5.48pieds/s
 
+            # Conversion de la vitesse actuelle (pieds/s -> km/h)
+            vitesse_actuelle_convertit = (vitesse_actuelle/3.28084)*3600
+
+            # Conversion du taux de montée entré par l'utilisateur (m/min -> pieds/s)
+            taux_monte_convertit = (taux_monte*3.28084)/60 # 1 m = 3.28084 pieds
+
             # Calcul de la nouvelle altitude
             altitude_actuelle += taux_monte_convertit * temps_ecoule
 
@@ -98,13 +98,20 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
             # Réduction de la vitesse pour se stabiliser à l'altitude désirée
             if altitude_actuelle > altitude_desiree:
-                vitesse_actuelle -= 10
+                vitesse_actuelle_convertit -= 100
             elif altitude_actuelle < altitude_desiree:
-                vitesse_actuelle += 10
+                vitesse_actuelle_convertit += 100
 
             # Calcul la puissance? 
             # À faire
 
+        #******************************************* AFFICHAGE **********************************************
 
+        # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
+        print(f"Altitude actuelle (pieds) : {altitude_actuelle}")
+        print(f"Vitesse actuelle (km/h) : {vitesse_actuelle_convertit}")
+        print(f"Puissance moteur (W) : {puissance_moteur}")
+        print(f"État système : {etat_systeme}")
+        print(f"Temps écoulé (s) : {temps_ecoule}")
 
 
