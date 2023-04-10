@@ -29,7 +29,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         print(f"Temps écoulé (s) : {temps_ecoule}")
 
 
-        #*************************************** RÉACTIVITÉ & CLOCK **********************************************
+        #************************************* RAFRAICHISSEMENT & CLOCK **********************************************
 
         # Pause de 1 seconde avant d'actualiser les valeurs (va changer la réactivité de notre système)
         time.sleep(1)
