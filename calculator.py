@@ -24,6 +24,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         print(f"Vitesse actuelle : {vitesse_actuelle}")
         print(f"Puissance moteur : {puissance_moteur}")
         print(f"État système : {etat_systeme}")
+        print(f"Temps écoulé : {temps_ecoule}")
         
         # Pause de 1 seconde avant d'actualiser les valeurs (va changer la réactivité de notre système)
         time.sleep(1)
@@ -36,8 +37,17 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
             while altitude_desiree == 0:
                 altitude_desiree = float(input("Veuillez entrez une altitude supérieure à 0 : "))
 
+            # Si angle d'attaque = 0, on a une division par zéro dans le calcul de vitesse
+            if angle_attaque <= 0:
+                angle_attaque = 5
+                print(f"Nouvel angle d'attaque : {angle_attaque}")
+
+            # Si angle d'attaque > 15, angle de décrochage (Chute libre)
+            while angle_attaque >= 15:
+                angle_attaque = float(input("**ALERTE : CHUTE LIBRE** Entrez un nouvel angle d'attaque : "))
+
             # Si les deux entrées sont nulles, fournir un taux de montée et un angle d'attaque
-            while taux_monte == 0 and angle_attaque == 0:
+            if taux_monte == 0 and angle_attaque == 0:
                 taux_monte = 100
                 print(f"Nouveau taux de montée : {taux_monte}")
                 angle_attaque = 5
@@ -48,8 +58,8 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
                 etat_systeme = "CHANGEMENT_ALT"
 
         elif etat_systeme == "CHANGEMENT_ALT":
-            # Calcul de la vitesse en fonction de la puissance moteur
-            vitesse_actuelle = taux_monte / math.sin(math.radians(angle_attaque)) * 100
+            # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
+            vitesse_actuelle = 100 / math.sin(math.radians(angle_attaque)) 
 
             # Calcul de la nouvelle altitude
             altitude_actuelle += taux_monte * temps_ecoule
@@ -60,7 +70,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
             # Sortie de l'état si l'altitude désirée est atteinte
             if altitude_actuelle >= altitude_desiree or altitude_actuelle >= 40000:
                 etat_systeme = "VOL_CROISIÈRE"
-
+            
 
         elif etat_systeme == "VOL_CROISIÈRE":  
             # taux mis à zéro une fois l'altitude atteinte
@@ -75,17 +85,6 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
             #Calcul la puissance? 
             #blabla
 
-            #Reboucler pour revenir à l'état ground/changement_alt?
-            #blabla
 
-
-    # #Retourne l'état final du système
-    # return etat_system
-
-    # Afficher l'état actuel du système
-    # print("Etat du système : ", etat_systeme)
-    # print("Altitude actuelle : ", altitude_actuelle)
-    # print("Vitesse actuelle : ", vitesse_actuelle)
-    # print("Puissance actuelle : ", puissance_moteur)
 
 
