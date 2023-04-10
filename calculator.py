@@ -13,12 +13,12 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
     temps_ecoule = 0
 
-    while True:
-        #Imputs de l'utilisateur
-        altitude_desiree = float(input("Entrez l'altitude désirée : "))
-        taux_monte = float(input("Entrez le taux de montée : "))
-        angle_attaque = float(input("Entrez l'angle d'attaque : "))
+    #Imputs de l'utilisateur (À mettre dans le while, mais pour l'instant à l'extérieur juste pour les tests)
+    altitude_desiree = float(input("Entrez l'altitude désirée : "))
+    taux_monte = float(input("Entrez le taux de montée : "))
+    angle_attaque = float(input("Entrez l'angle d'attaque : "))
 
+    while True:
         # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
         print(f"Altitude actuelle : {altitude_actuelle}")
         print(f"Vitesse actuelle : {vitesse_actuelle}")
@@ -32,17 +32,24 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         temps_ecoule += 1
         
         if etat_systeme == "GROUND":
+            # Si l'utilisateur entre une valeur d'altitude désirée de 0
+            while altitude_desiree == 0:
+                altitude_desiree = float(input("Veuillez entrez une altitude supérieure à 0 : "))
+
             # Si les deux entrées sont nulles, fournir un taux de montée et un angle d'attaque
-            if taux_monte == 0 and angle_attaque == 0:
+            while taux_monte == 0 and angle_attaque == 0:
                 taux_monte = 100
+                print(f"Nouveau taux de montée : {taux_monte}")
                 angle_attaque = 5
+                print(f"Nouvel angle d'attaque : {angle_attaque}")
+
             # Changement d'état si l'altitude désirée est fournie
             else:
                 etat_systeme = "CHANGEMENT_ALT"
 
         elif etat_systeme == "CHANGEMENT_ALT":
             # Calcul de la vitesse en fonction de la puissance moteur
-            vitesse = taux_monte / math.sin(angle_attaque) * 100
+            vitesse_actuelle = taux_monte / math.sin(math.radians(angle_attaque)) * 100
 
             # Calcul de la nouvelle altitude
             altitude_actuelle += taux_monte * temps_ecoule
@@ -61,9 +68,9 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
             # Réduction de la vitesse pour se stabiliser à l'altitude désirée
             if altitude_actuelle > altitude_desiree:
-                vitesse -= 10
+                vitesse_actuelle -= 10
             elif altitude_actuelle < altitude_desiree:
-                vitesse += 10
+                vitesse_actuelle += 10
 
             #Calcul la puissance? 
             #blabla
