@@ -23,6 +23,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         print(f"Altitude actuelle : {altitude_actuelle}")
         print(f"Vitesse actuelle : {vitesse_actuelle}")
         print(f"Puissance moteur : {puissance_moteur}")
+        print(f"État système : {etat_systeme}")
         
         # Pause de 1 seconde avant d'actualiser les valeurs (va changer la réactivité de notre système)
         time.sleep(1)
@@ -41,7 +42,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
         elif etat_systeme == "CHANGEMENT_ALT":
             # Calcul de la vitesse en fonction de la puissance moteur
-            vitesse = taux_monte / sin(angle_attaque) * 100
+            vitesse = taux_monte / math.sin(angle_attaque) * 100
 
             # Calcul de la nouvelle altitude
             altitude_actuelle += taux_monte * temps_ecoule
@@ -75,9 +76,9 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
     # return etat_system
 
     # Afficher l'état actuel du système
-    print("Etat du système : ", etat_systeme)
-    print("Altitude actuelle : ", altitude_actuelle)
-    print("Vitesse actuelle : ", vitesse_actuelle)
-    print("Puissance actuelle : ", puissance_moteur)
+    # print("Etat du système : ", etat_systeme)
+    # print("Altitude actuelle : ", altitude_actuelle)
+    # print("Vitesse actuelle : ", vitesse_actuelle)
+    # print("Puissance actuelle : ", puissance_moteur)
 
 
