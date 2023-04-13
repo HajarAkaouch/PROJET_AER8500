@@ -22,6 +22,11 @@ def calculator(arinc_to_agg, arinc_to_cal, afdx_to_agg, afdx_to_cal):
     # afdx_to_cal.get()
     pass
 
+"""
+def user_input():
+    pass
+"""
+
 # Create two queues for each direction of communication, one for each protocol
 arinc_to_agg = queue.Queue()
 arinc_to_cal = queue.Queue()

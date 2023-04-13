@@ -30,11 +30,11 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
         #************************************** FONCTIONS DE CONVERSION ******************************************
         
-        # Conversion du taux de montée entré par l'utilisateur (m/min -> pieds/s)
-        # taux_monte_convertit = (taux_monte*3.28084)/60 # 1 m = 3.28084 pieds
-        
         # Conversion de la vitesse actuelle (pieds/s -> km/h)
-        # vitesse_actuelle_convertit = (vitesse_actuelle/3.28084)*3600
+        # vitesse_actuelle_convertit = vitesse_actuelle*1.09728 # 1 pieds/s -> 1.09728 km/h 
+
+        # Conversion du taux de montée entré par l'utilisateur (m/min -> pieds/s)
+        # taux_monte_convertit = taux_monte*0.0546807 # 1 m/min -> 0.0546807 pieds/s
 
 
         #********************************************** GROUND ******************************************
@@ -75,10 +75,10 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
             vitesse_actuelle = 5.468 / math.sin(math.radians(angle_attaque)) # 100m/min -> 5.48pieds/s
 
             # Conversion de la vitesse actuelle (pieds/s -> km/h)
-            vitesse_actuelle_convertit = (vitesse_actuelle/3.28084)*3600
+            vitesse_actuelle_convertit = vitesse_actuelle*1.09728 # 1 pieds/s -> 1.09728 km/h 
 
             # Conversion du taux de montée entré par l'utilisateur (m/min -> pieds/s)
-            taux_monte_convertit = (taux_monte*3.28084)/60 # 1 m = 3.28084 pieds
+            taux_monte_convertit = taux_monte*0.0546807 # 1 m/min -> 0.0546807 pieds/s
 
             # Calcul de la nouvelle altitude
             altitude_actuelle += taux_monte_convertit * temps_ecoule
@@ -115,3 +115,50 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         print(f"Temps écoulé (s) : {temps_ecoule}")
 
 
+
+"""
+import time
+
+class PIDController:
+    def __init__(self, kp, ki, kd, setpoint):
+        self.kp = kp
+        self.ki = ki
+        self.kd = kd
+        self.setpoint = setpoint
+        self.last_error = 0
+        self.integral = 0
+
+    def update(self, measured_value):
+        error = self.setpoint - measured_value
+        self.integral += error
+        derivative = error - self.last_error
+        output = self.kp * error + self.ki * self.integral + self.kd * derivative
+        self.last_error = error
+        return output
+
+# Variables initiales
+altitude = 0  # en mètres
+vitesse = 100  # en mètres par seconde
+altitude_desiree = 5000  # en mètres
+dt = 0.1  # en secondes
+
+# Constantes du PID
+kp = 0.1
+ki = 0.01
+kd = 0.01
+
+# Initialisation du PID
+pid = PIDController(kp, ki, kd, altitude_desiree)
+
+# Boucle de contrôle
+while altitude < altitude_desiree:
+    altitude += vitesse * dt
+    vitesse += pid.update(altitude) * dt
+
+    # Limite de la vitesse à zéro à l'altitude désirée
+    if altitude >= altitude_desiree and vitesse > 0:
+        vitesse = 0
+
+    print(f"Altitude: {altitude:.2f} m, Vitesse: {vitesse:.2f} m/s")
+    time.sleep(dt)
+"""
