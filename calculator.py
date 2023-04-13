@@ -33,8 +33,8 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         # Conversion de la vitesse actuelle (pieds/s -> km/h)
         # vitesse_actuelle_convertit = vitesse_actuelle*1.09728 # 1 pieds/s -> 1.09728 km/h 
 
-        # Conversion du taux de montée entré par l'utilisateur (m/min -> pieds/s)
-        # taux_monte_convertit = taux_monte*0.0546807 # 1 m/min -> 0.0546807 pieds/s
+        # Conversion de la vitesse actuelle (pieds/s -> km/h) -> convertir en kt 
+        # vitesse_actuelle_convertit = vitesse_actuelle*0.592484 # 1 pieds/s -> 0.592484 kt 
 
 
         #********************************************** GROUND ******************************************
@@ -60,7 +60,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
             if taux_monte == 0 and angle_attaque == 0:
                 taux_monte = 100
                 print(f"Nouveau taux de montée : {taux_monte}")
-                angle_attaque = 5
+                angle_attaque = 10
                 print(f"Nouvel angle d'attaque : {angle_attaque}")
 
             # Changement d'état si l'altitude désirée est fournie
@@ -71,45 +71,68 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
         #************************************** CHANG. ALTITUDE ******************************************
 
         elif etat_systeme == "CHANGEMENT_ALT":
-            # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
-            vitesse_actuelle = 5.468 / math.sin(math.radians(angle_attaque)) # 100m/min -> 5.48pieds/s
+            #Augmentation de la vitesse tant que l'altitude désirée n'est pas atteinte
+            while altitude_actuelle < (altitude_desiree - 5000):
+                taux_monte_convertit = taux_monte*0.0546807 # 1 m/min -> 0.0546807 pieds/s
 
-            # Conversion de la vitesse actuelle (pieds/s -> km/h)
-            vitesse_actuelle_convertit = vitesse_actuelle*1.09728 # 1 pieds/s -> 1.09728 km/h 
+                # Calcul de la nouvelle altitude
+                altitude_actuelle += taux_monte * temps_ecoule
 
-            # Conversion du taux de montée entré par l'utilisateur (m/min -> pieds/s)
-            taux_monte_convertit = taux_monte*0.0546807 # 1 m/min -> 0.0546807 pieds/s
+                # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
+                vitesse_actuelle = taux_monte / math.sin(math.radians(angle_attaque)) # V = taux de montée/sin(angle d'attaque)
 
-            # Calcul de la nouvelle altitude
-            altitude_actuelle += taux_monte_convertit * temps_ecoule
+                # Conversion de la vitesse actuelle (pieds/s -> km/h) -> convertir en kt 
+                vitesse_actuelle_convertit = vitesse_actuelle*0.592484 # 1 pieds/s -> 0.592484 kt 
 
-            # Calcul la puissance?
-            # À faire 
+                # Calcul la puissance (taux_monte = 5.468 # 100m/min -> 5.48pieds/s)?
+                # À faire 
+
+                # À l’approche de l’altitude désirée atteinte, la vitesse doit commencer à se décroître pour s’annuler à l’altitude désirée (méthode par pallier).
+            while altitude_actuelle >= (altitude_desiree - 5000):
+                    if altitude_actuelle >= altitude_desiree - 5000 and altitude_actuelle < altitude_desiree - 2500:
+                        taux_monte_1 = taux_monte_convertit / 2
+                        altitude_actuelle += taux_monte_1 * temps_ecoule 
+                        vitesse_actuelle = taux_monte_1 / math.sin(math.radians(angle_attaque))
+                        vitesse_actuelle_convertit = vitesse_actuelle*0.592484
+
+                    elif altitude_actuelle >= altitude_desiree - 2500 and altitude_actuelle < altitude_desiree - 3750:
+                        taux_monte_2 = taux_monte_convertit / 2
+                        altitude_actuelle += taux_monte_2 * temps_ecoule 
+                        vitesse_actuelle = taux_monte_2 / math.sin(math.radians(angle_attaque))
+                        vitesse_actuelle_convertit = vitesse_actuelle*0.592484
+
+                    elif altitude_actuelle >= altitude_desiree - 3750 and altitude_actuelle < altitude_desiree:
+                        taux_monte_3 = taux_monte_convertit / 2
+                        altitude_actuelle += taux_monte * temps_ecoule 
+                        vitesse_actuelle = taux_monte_3 / math.sin(math.radians(angle_attaque))
+                        vitesse_actuelle_convertit = vitesse_actuelle*0.592484
 
             # Sortie de l'état si l'altitude désirée est atteinte
             if altitude_actuelle >= altitude_desiree or altitude_actuelle >= 40000:
                 etat_systeme = "VOL_CROISIÈRE"
             
+
         #*************************************** VOL CROISIÈRE ******************************************
 
         elif etat_systeme == "VOL_CROISIÈRE":  
             # taux mis à zéro une fois l'altitude atteinte
             taux_monte = 0.0  
 
-            # Réduction de la vitesse pour se stabiliser à l'altitude désirée
-            if altitude_actuelle > altitude_desiree:
-                vitesse_actuelle_convertit -= 100
-            elif altitude_actuelle < altitude_desiree:
-                vitesse_actuelle_convertit += 100
+            # Cas dans lequel on dépasse l'altitude désirée : Réduction de la vitesse pour se stabiliser à l'altitude désirée (Établir une mesure de sécurité si l'avion est trop élevé?)
+            # while altitude_actuelle > altitude_desiree:
+            #     print(f"Altitude désirée dépassée, réduction de la vitesse.")
+            #     taux_monte = 5.468 # 100m/min -> 5.48pieds/s
+            #     vitesse_actuelle_convertit -= 1 # À enlever sinon vitesse négative
+            #     altitude_actuelle -= taux_monte_convertit * temps_ecoule
 
-            # Calcul la puissance? 
-            # À faire
+            # Calcul la puissance (taux_monte = 5.468 # 100m/min -> 5.48pieds/s)?
+            # À faire 
 
         #******************************************* AFFICHAGE **********************************************
 
         # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
         print(f"Altitude actuelle (pieds) : {altitude_actuelle}")
-        print(f"Vitesse actuelle (km/h) : {vitesse_actuelle_convertit}")
+        print(f"Vitesse actuelle (kt) : {vitesse_actuelle_convertit}")
         print(f"Puissance moteur (W) : {puissance_moteur}")
         print(f"État système : {etat_systeme}")
         print(f"Temps écoulé (s) : {temps_ecoule}")
