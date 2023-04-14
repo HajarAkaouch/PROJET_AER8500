@@ -87,15 +87,16 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
                 if altitude_desiree - altitude_actuelle < 2000:  #if altitude_actuelle >= (altitude_desiree - 2000):
                     time.sleep(1)
                     temps_ecoule += 1
-                    taux_monte -= 0.5*taux_monte_convertit
+                    taux_monte -= 0.1*taux_monte_convertit
 
-                    if altitude_actuelle == altitude_desiree: 
+                    # Sortie de l'état si l'altitude désirée est atteinte
+                    if altitude_actuelle >= altitude_desiree or altitude_actuelle >= 40000:
+                        time.sleep(1)
+                        temps_ecoule += 1 
                         # taux mis à zéro une fois l'altitude atteinte
-                        taux_monte = 0.0    
+                        taux_monte = 0.0 
+                        etat_systeme = "VOL_CROISIÈRE"   
 
-                        # Sortie de l'état si l'altitude désirée est atteinte
-                        if altitude_actuelle >= altitude_desiree or altitude_actuelle >= 40000:
-                            etat_systeme = "VOL_CROISIÈRE"
 
             # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
                 print(f"Altitude actuelle (pieds) : {altitude_actuelle}")
