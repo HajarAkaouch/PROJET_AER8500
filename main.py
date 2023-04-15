@@ -6,7 +6,7 @@ import threading
 import queue
 import calculator
 
-calculator.user_input(0, 0, 0)
+calculator.boucle_principale()
 
 def aggregator(arinc_to_agg, arinc_to_cal, afdx_to_agg, afdx_to_cal):
     # arinc_to_agg.get()
