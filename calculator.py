@@ -13,6 +13,9 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
     temps_ecoule = 0
 
+    ALTITUDE_MAX = 40000 #pieds
+    VITESSE_MAX = 800 #m/min
+
     #Imputs de l'utilisateur (À mettre dans le while, mais pour l'instant à l'extérieur juste pour les tests)
     altitude_desiree = float(input("Entrez l'altitude désirée (pieds) : "))
     taux_monte = float(input("Entrez le taux de montée (m/min) : "))
@@ -45,7 +48,10 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
             # Si l'utilisateur entre une valeur d'altitude désirée de 0
             while altitude_desiree == 0:
-                altitude_desiree = float(input("Veuillez entrez une altitude supérieure à 0 : "))
+                altitude_desiree = float(input("Veuillez entrez une altitude supérieure à 0 pieds : "))
+
+            while altitude_desiree > 40000:
+                altitude_desiree = float(input("Veuillez entrez une altitude inférieure ou égale à 40000 pieds : "))
 
             # Si angle d'attaque = 0, on a une division par zéro dans le calcul de vitesse
             if angle_attaque <= 0:
@@ -63,6 +69,9 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
                 angle_attaque = 10
                 print(f"Nouvel angle d'attaque : {angle_attaque}")
 
+            while taux_monte > 800:
+                taux_monte = float(input("Veuillez entrez un taux de montée inférieure ou égale à 800 m/min : "))
+
             # Changement d'état si l'altitude désirée est fournie
             else:
                 etat_systeme = "CHANGEMENT_ALT"
@@ -72,7 +81,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
 
         elif etat_systeme == "CHANGEMENT_ALT":
             #Augmentation de la vitesse tant que l'altitude désirée n'est pas atteinte
-            while altitude_actuelle < altitude_desiree:
+            while altitude_actuelle < altitude_desiree and altitude_actuelle < ALTITUDE_MAX:
                 time.sleep(1)
                 temps_ecoule += 1
 
@@ -114,7 +123,7 @@ def user_input(altitude_desiree, taux_monte, angle_attaque):
                     taux_monte -= 0.2*taux_monte_convertit
 
                 # Sortie de l'état si l'altitude désirée est atteinte
-                elif altitude_actuelle >= altitude_desiree or altitude_actuelle >= 40000:
+                elif altitude_actuelle == altitude_desiree or altitude_actuelle == ALTITUDE_MAX:
                     time.sleep(1)
                     temps_ecoule += 1 
                     # taux mis à zéro une fois l'altitude atteinte
