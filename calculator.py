@@ -3,8 +3,9 @@ In this file you will find the functions to calculate the rates
 """
 import math
 import time
+import numpy as np
 
-#Dictionnaire contenant la liste des variables à afficher initialisées
+# Dictionnaire contenant la liste des variables à afficher initialisées
 var = {"altitude_actuelle": 5000, 
         "vitesse_actuelle": 0,
         "vitesse_actuelle_convertit": 0, 
@@ -13,8 +14,9 @@ var = {"altitude_actuelle": 5000,
         "altitude_desiree": 0,
         "taux_monte": 0,
         "taux_monte_convertit": 0,
-        "angle_attaque": 0,}                     
+        "angle_attaque": 0,}                    
 
+# Variables globales d'alatitude et du taux de monté maximal
 ALTITUDE_MAX = 40000 #pieds
 VITESSE_MAX = 800 #m/min
 
@@ -22,6 +24,7 @@ def prochain_etat(var, dt):
 
     #********************************************** GROUND ********************************************************
 
+    # Lorsque l’avion est au sol, l’altitude du système est nulle.
     if var["altitude_actuelle"] == 0:  
         var["etat_systeme"] = "GROUND"
 
@@ -42,27 +45,34 @@ def prochain_etat(var, dt):
         print("etat_systeme :", var["etat_systeme"])
 
         # 1 m/min -> 0.0546807 pieds/s
+        var["taux_monte"] = np.round(var["taux_monte"], 1)
         var["taux_monte_convertit"] = var["taux_monte"]*0.0546807 # 1 m/min -> 0.0546807 pieds/s
         print("taux_monte_convertit :", var["taux_monte_convertit"])
+        var["taux_monte_convertit"] = np.round(var["taux_monte_convertit"], 1)                
 
         # Calcul de la nouvelle altitude
         var["altitude_actuelle"] += var["taux_monte_convertit"]*dt
+        var["altitude_actuelle"] = np.round(var["altitude_actuelle"], -1)
         print("altitude_actuelle :", var["altitude_actuelle"])
 
         # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
+        var["angle_attaque"] = np.round(var["angle_attaque"], 1) 
         var["vitesse_actuelle"] = var["taux_monte_convertit"]/math.sin(math.radians(var["angle_attaque"])) # V = taux de montée/sin(angle d'attaque)
+        var["vitesse_actuelle"] = np.round(var["vitesse_actuelle"], 1)
         print("vitesse_actuelle :", var["vitesse_actuelle"])
 
         # Conversion de la vitesse actuelle (pieds/s -> kt)
         var["vitesse_actuelle_convertit"] = var["vitesse_actuelle"]*0.592484 # 1 pieds/s -> 0.592484 kt 
+        var["vitesse_actuelle_convertit"] = np.round(var["vitesse_actuelle_convertit"], 1)
         print("vitesse_actuelle_convertit :", var["vitesse_actuelle_convertit"])
 
         # Calcul la puissance (taux_monte = 5.468 # 100m/min -> 5.48pieds/s)
         var["puissance_moteur"] = var["taux_monte_convertit"] / 5.48 * 10 
+        var["puissance_moteur"] = np.round(var["puissance_moteur"], 1)
         print("puissance_moteur :", var["puissance_moteur"])
 
         #taux_monte -= taux_monte_convertit
-        # À l’approche de l’altitude désirée atteinte, la vitesse doit commencer à se décroître pour s’annuler à l’altitude désirée (méthode par pallier).
+        # À l’approche de l’altitude désirée atteinte, la vitesse doit commencer à se décroître pour s’annuler à l’altitude désirée
         if abs(var["altitude_actuelle"] - var["altitude_desiree"]) < 1000:  
             deceleration = abs(var["altitude_actuelle"] - var["altitude_desiree"]) / 1000
             var["taux_monte_convertit"] = (var["taux_monte_convertit"] * deceleration) + 0.01
@@ -86,6 +96,7 @@ def boucle_principale():
     last_frame = time.monotonic()
 
     while True:
+        # Appel de la fonction qui reçois les inputs de l'utilisateur 
         lire_input(var)
 
         # Fonction du temps
@@ -98,13 +109,13 @@ def boucle_principale():
 
         # Rafraichissement
         time.sleep(0.005)
-        print(var)
+        print(var) # Juste pour les tests
 
-
+# Fonction qui reçois les inputs de l'utilisateur 
 def lire_input(var): 
-    var["altitude_desiree"] = 3800
-    var["taux_monte"] = 800 
-    var["angle_attaque"] = 10
+    var["altitude_desiree"] = 3800.7463
+    var["taux_monte"] = 800.382 
+    var["angle_attaque"] = 10.12993
 
 
 
