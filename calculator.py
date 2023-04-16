@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 # Dictionnaire contenant la liste des variables à afficher initialisées
-var = {"altitude_actuelle": 5000, 
+var = {"altitude_actuelle": 0, 
         "vitesse_actuelle": 0,
         "vitesse_actuelle_convertit": 0, 
         "puissance_moteur": 0,
@@ -45,31 +45,26 @@ def prochain_etat(var, dt):
         print("etat_systeme :", var["etat_systeme"])
 
         # 1 m/min -> 0.0546807 pieds/s
-        var["taux_monte"] = np.round(var["taux_monte"], 1)
+        # var["taux_monte"] = np.round(var["taux_monte"], 1) # Résolution
         var["taux_monte_convertit"] = var["taux_monte"]*0.0546807 # 1 m/min -> 0.0546807 pieds/s
-        print("taux_monte_convertit :", var["taux_monte_convertit"])
-        var["taux_monte_convertit"] = np.round(var["taux_monte_convertit"], 1)                
+        # var["taux_monte_convertit"] = np.round(var["taux_monte_convertit"], 1) # Résolution               
 
         # Calcul de la nouvelle altitude
         var["altitude_actuelle"] += var["taux_monte_convertit"]*dt
-        var["altitude_actuelle"] = np.round(var["altitude_actuelle"], -1)
-        print("altitude_actuelle :", var["altitude_actuelle"])
+        # var["altitude_actuelle"] = np.round(var["altitude_actuelle"], -1) # Résolution
 
         # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
-        var["angle_attaque"] = np.round(var["angle_attaque"], 1) 
-        var["vitesse_actuelle"] = var["taux_monte_convertit"]/math.sin(math.radians(var["angle_attaque"])) # V = taux de montée/sin(angle d'attaque)
-        var["vitesse_actuelle"] = np.round(var["vitesse_actuelle"], 1)
-        print("vitesse_actuelle :", var["vitesse_actuelle"])
+        # var["angle_attaque"] = np.round(var["angle_attaque"], 1) # Résolution
+        var["vitesse_actuelle"] = abs(var["taux_monte_convertit"]/math.sin(math.radians(var["angle_attaque"]))) # V = taux de montée/sin(angle d'attaque)
+        # var["vitesse_actuelle"] = np.round(var["vitesse_actuelle"], 1) # Résolution
 
         # Conversion de la vitesse actuelle (pieds/s -> kt)
-        var["vitesse_actuelle_convertit"] = var["vitesse_actuelle"]*0.592484 # 1 pieds/s -> 0.592484 kt 
-        var["vitesse_actuelle_convertit"] = np.round(var["vitesse_actuelle_convertit"], 1)
-        print("vitesse_actuelle_convertit :", var["vitesse_actuelle_convertit"])
+        var["vitesse_actuelle_convertit"] = abs(var["vitesse_actuelle"]*0.592484) # 1 pieds/s -> 0.592484 kt 
+        # var["vitesse_actuelle_convertit"] = np.round(var["vitesse_actuelle_convertit"], 1) # Résolution
 
         # Calcul la puissance (taux_monte = 5.468 # 100m/min -> 5.48pieds/s)
-        var["puissance_moteur"] = var["taux_monte_convertit"] / 5.48 * 10 
-        var["puissance_moteur"] = np.round(var["puissance_moteur"], 1)
-        print("puissance_moteur :", var["puissance_moteur"])
+        var["puissance_moteur"] = abs(var["taux_monte_convertit"] / 5.48 * 10)
+        # var["puissance_moteur"] = np.round(var["puissance_moteur"], 1) # Résolution
 
         #taux_monte -= taux_monte_convertit
         # À l’approche de l’altitude désirée atteinte, la vitesse doit commencer à se décroître pour s’annuler à l’altitude désirée
@@ -90,7 +85,13 @@ def prochain_etat(var, dt):
         var["etat_systeme"] = "VOL_CROISIÈRE"
         # taux mis à zéro une fois l'altitude atteinte
         var["taux_monte"] = 0.0 
+    
+    if var["altitude_actuelle"] == var["altitude_desiree"] == 0:
+        var["etat_systeme"] = "GROUND"
+        var["taux_monte"] = 0.0 
 
+    
+    return var["altitude_actuelle"], var["vitesse_actuelle_convertit"], var["puissance_moteur"], var["etat_systeme"]
 
 def boucle_principale():
     last_frame = time.monotonic()
@@ -105,17 +106,18 @@ def boucle_principale():
         last_frame = now
 
         # Appel de la fonction qui déterminera le prochain état
-        prochain_etat(var, dt)
+        #prochain_etat(var, dt)
+        print(prochain_etat(var, dt))
 
         # Rafraichissement
         time.sleep(0.005)
-        print(var) # Juste pour les tests
+        # print(var) # Juste pour les tests
 
 # Fonction qui reçois les inputs de l'utilisateur 
 def lire_input(var): 
-    var["altitude_desiree"] = 3800.7463
-    var["taux_monte"] = 800.382 
-    var["angle_attaque"] = 10.12993
+    var["altitude_desiree"] = 1500
+    var["taux_monte"] = 700 
+    var["angle_attaque"] = 12
 
 
 
