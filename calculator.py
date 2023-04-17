@@ -6,7 +6,7 @@ import time
 import numpy as np
 
 # Dictionnaire contenant la liste des variables à afficher initialisées
-var = {"altitude_actuelle": {"value": 3000, "string": ""}, 
+var = {"altitude_actuelle": {"value": 35000, "string": ""}, 
         "vitesse_actuelle": {"value": 0, "string": ""},
         "vitesse_actuelle_convertit": {"value": 0, "string": ""}, 
         "puissance_moteur": {"value": 0, "string": ""},
@@ -23,7 +23,7 @@ VITESSE_MAX = 800 #m/min
 def prochain_etat(var, dt):
         
     #********************************************** GROUND ********************************************************
-    # Si les deux entrées sont nulles, fournir un taux de montée et un angle d'attaque
+    # Si les deux entrées de taux de montée et d'angle d'attaque sont nuls, en fournir
     if var["taux_monte"]["value"] == 0:
         var["taux_monte"]["value"] = 400
     if var["angle_attaque"]["value"] == 0:
@@ -36,15 +36,25 @@ def prochain_etat(var, dt):
 
     #************************************** CHANG. ALTITUDE ********************************************************
 
-    # Déterminer si on est en montée ou en descente
-    if var["altitude_actuelle"]["value"] < var["altitude_desiree"]["value"] and var["altitude_actuelle"]["value"] < ALTITUDE_MAX:
+    # Déterminer si on est en montée ou en descente lorsque l'utilisateur nous fournit une altitude désirée
+    if var["altitude_actuelle"]["value"] < var["altitude_desiree"]["value"] and var["altitude_actuelle"]["value"] < ALTITUDE_MAX and var["angle_attaque"]["value"] > 0:
         var["mode_descente"] = "MONTÉE"
+        print(var["mode_descente"])
         var["etat_systeme"] = "CHANGEMENT_ALT"
 
-    if var["altitude_actuelle"]["value"] > var["altitude_desiree"]["value"] and var["altitude_actuelle"]["value"] < ALTITUDE_MAX:
+    if var["altitude_actuelle"]["value"] > var["altitude_desiree"]["value"] and var["altitude_actuelle"]["value"] < ALTITUDE_MAX and var["angle_attaque"]["value"] < 0:
         var["mode_descente"] = "DESCENTE"
+        print(var["mode_descente"])
         var["etat_systeme"] = "CHANGEMENT_ALT"
         var["taux_monte"]["value"] = -1 * var["taux_monte"]["value"]
+
+    # Déterminer si on est en montée ou en descente lorsque l'utilisateur nous fournit juste l'angle d'attaque et le taux de monté
+    if var["angle_attaque"]["value"] > 0 and var["altitude_desiree"]["value"] == 0:
+        var["mode_descente"] = "MONTÉE"
+        var["altitude_desiree"]["value"] = ALTITUDE_MAX
+        print(var["mode_descente"])
+        var["etat_systeme"] = "CHANGEMENT_ALT"
+
     
     # Augmentation de la vitesse tant que l'altitude désirée n'est pas atteinte
     if var["etat_systeme"] == "CHANGEMENT_ALT":
@@ -149,51 +159,8 @@ def boucle_principale():
 
 # Fonction qui reçois les inputs de l'utilisateur 
 def lire_input(var): 
-    var["altitude_desiree"]["value"] = 4500
-    var["taux_monte"]["value"] = 100 
-    var["angle_attaque"]["value"] = -10
+    var["altitude_desiree"]["value"] = 0
+    var["taux_monte"]["value"] = 400 
+    var["angle_attaque"]["value"] = 10
 
 
-"""
-    #Imputs de l'utilisateur 
-        altitude_desiree = float(input("Entrez l'altitude désirée (pieds) : "))
-        taux_monte = float(input("Entrez le taux de montée (m/min) : "))
-        angle_attaque = float(input("Entrez l'angle d'attaque (degrés) : "))
-
-    # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
-        print(f"Altitude actuelle (pieds) : {altitude_actuelle}")
-        print(f"Vitesse actuelle (kt) : {vitesse_actuelle_convertit}")
-        print(f"Puissance moteur (%) : {puissance_moteur}")
-        print(f"État système : {var_systeme}")
-        print(f"Temps écoulé (s) : {temps_ecoule}")
-"""
-
-
-    #********************************************** GROUND CONTRAINTES ********************************************************
-
-    # if var["var_systeme"] == "GROUND":
-    #     # Si l'utilisateur entre une valeur d'altitude désirée de 0
-    #     while var["altitude_desiree"] == 0:
-    #         var["altitude_desiree"] = float(input("Veuillez entrez une altitude supérieure à 0 pieds : "))
-
-    #     while var["altitude_desiree"] > ALTITUDE_MAX:
-    #         var["altitude_desiree"] = float(input("Veuillez entrez une altitude inférieure ou égale à 40000 pieds : "))
-
-    #     # Si angle d'attaque = 0, on a une division par zéro dans le calcul de vitesse
-    #     if var["angle_attaque"] <= 0:
-    #         var["angle_attaque"] = 10
-    #         print(f"Nouvel angle d'attaque : {var['angle_attaque']}")
-
-    #     # Si les deux entrées sont nulles, fournir un taux de montée et un angle d'attaque
-    #     if var["taux_monte"] == 0 and var["angle_attaque"] == 0:
-    #         var["taux_monte"] = 300
-    #         print(f"Nouveau taux de montée : {var['taux_monte']}")
-    #         var["angle_attaque"] = 10
-    #         print(f"Nouvel angle d'attaque : {var['angle_attaque']}")
-
-    #     while var["taux_monte"] > 800:
-    #         var["taux_monte"] = float(input("Veuillez entrez un taux de montée inférieure ou égale à 800 m/min : "))
-
-    #     # Changement d'état si l'altitude désirée est fournie
-    #     else:
-    #         var["var_systeme"] = "CHANGEMENT_ALT"
