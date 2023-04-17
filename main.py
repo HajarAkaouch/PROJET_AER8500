@@ -16,8 +16,6 @@ def aggregator_thread(arinc_to_agg, arinc_to_cal, afdx_to_agg, afdx_to_cal):
             # If same chose value of arinc
             # If not discard
         
-            
-
         afdx_to_cal.put(message)
         arinc_to_cal.put(message)
     

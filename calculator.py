@@ -3,8 +3,6 @@ In this file you will find the functions to calculate the rates
 """
 import math
 import time
-import numpy as np
-
 # Dictionnaire contenant la liste des variables à afficher initialisées
 var = {"altitude_actuelle": 0, 
         "vitesse_actuelle": 0,
