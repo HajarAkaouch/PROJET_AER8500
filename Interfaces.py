@@ -18,9 +18,9 @@ class Interfaces:
         
         input_layout = [
         [gui.T(' ' * 50), gui.Text('Panneau usager', font =('Arial', 20), justification ='center', pad=(1,10))],
-        [gui.Text('Altitude désiré (pieds):',font =('Arial', 15), size =(15, 1)), gui.InputText(do_not_clear=False)],
-        [gui.Text('Taux de montée (m/min):', font =('Arial', 15), size =(15, 1)), gui.InputText(do_not_clear=False)],
-        [gui.Text("Angle d'attaque (degré):", font =('Arial', 15), size =(15, 1)), gui.InputText(do_not_clear=False)],
+        [gui.Text('Altitude désiré (pieds):',font =('Arial', 15), size =(20, 1)), gui.InputText(do_not_clear=False)],
+        [gui.Text('Taux de montée (m/min):', font =('Arial', 15), size =(20, 1)), gui.InputText(do_not_clear=False)],
+        [gui.Text("Angle d'attaque (degré):", font =('Arial', 15), size =(20, 1)), gui.InputText(do_not_clear=False)],
         [gui.Text("Alt enregistrée :", font =('Arial', 10),text_color="#e5ecf5"), 
          gui.Text(font =('Arial', 10), size =(10, 1),text_color="#e5ecf5", key = "alt"),
          gui.Text("Taux enregistré :", font =('Arial', 10), text_color="#e5ecf5"), 

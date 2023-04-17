@@ -18,7 +18,7 @@ var = {"altitude_actuelle": {"value": 35000, "string": ""},
 ALTITUDE_MAX = 40000 #pieds
 VITESSE_MAX = 800 #m/min
 
-def prochain_etat(var, dt):
+def prochain_etat(alt, taux_m, angle, dt):
         
     #********************************************** GROUND ********************************************************
     # Si les deux entrées de taux de montée et d'angle d'attaque sont nuls, en fournir
@@ -140,7 +140,7 @@ def boucle_principale():
 
     while True:
         # Appel de la fonction qui reçois les inputs de l'utilisateur 
-        lire_input(var)
+        lire_input()
 
         # Fonction du temps
         now = time.monotonic() 
@@ -156,9 +156,9 @@ def boucle_principale():
         # print(var) # Juste pour les tests
 
 # Fonction qui reçois les inputs de l'utilisateur 
-def lire_input(var): 
-    var["altitude_desiree"]["value"] = 0
-    var["taux_monte"]["value"] = 400 
-    var["angle_attaque"]["value"] = 10
+def lire_input(alt, taux_m, angle): 
+    var["altitude_desiree"]["value"] = alt
+    var["taux_monte"]["value"] = taux_m 
+    var["angle_attaque"]["value"] = angle
 
 
