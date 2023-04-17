@@ -3,204 +3,168 @@ In this file you will find the functions to calculate the rates
 """
 import math
 import time
+import numpy as np
 
-def user_input(altitude_desiree, taux_monte, angle_attaque):
-    #initialisation des variables
-    altitude_actuelle = 0.0
-    vitesse_actuelle = 0.0
-    puissance_moteur = 0.0
-    etat_systeme = "GROUND"
+# Dictionnaire contenant la liste des variables à afficher initialisées
+var = {"altitude_actuelle": 0, 
+        "vitesse_actuelle": 0,
+        "vitesse_actuelle_convertit": 0, 
+        "puissance_moteur": 0,
+        "etat_systeme": "GROUND",
+        "altitude_desiree": 0,
+        "taux_monte": 0,
+        "taux_monte_convertit": 0,
+        "angle_attaque": 0,}                    
 
-    temps_ecoule = 0
+# Variables globales d'alatitude et du taux de monté maximal
+ALTITUDE_MAX = 40000 #pieds
+VITESSE_MAX = 800 #m/min
 
-    #Imputs de l'utilisateur (À mettre dans le while, mais pour l'instant à l'extérieur juste pour les tests)
-    altitude_desiree = float(input("Entrez l'altitude désirée (pieds) : "))
-    taux_monte = float(input("Entrez le taux de montée (m/min) : "))
-    angle_attaque = float(input("Entrez l'angle d'attaque (degrés) : "))
+def prochain_etat(var, dt):
 
-    while True:
-        #************************************* RAFRAICHISSEMENT & CLOCK **********************************************
+    #********************************************** GROUND ********************************************************
 
-        # Pause de 1 seconde avant d'actualiser les valeurs (va changer la réactivité de notre système)
-        #time.sleep(1)
+    # Lorsque l’avion est au sol, l’altitude du système est nulle.
+    if var["altitude_actuelle"] == 0:  
+        var["etat_systeme"] = "GROUND"
 
-        #Clock
-        #temps_ecoule += 1
+    #************************************** CHANG. ALTITUDE ********************************************************
+
+    # Déterminer si on est en montée ou en descente
+    if var["altitude_actuelle"] < var["altitude_desiree"] and var["altitude_actuelle"] < ALTITUDE_MAX:
+        var["mode_descente"] = "MONTÉE"
+        var["etat_systeme"] = "CHANGEMENT_ALT"
+
+    if var["altitude_actuelle"] > var["altitude_desiree"] and var["altitude_actuelle"] < ALTITUDE_MAX:
+        var["mode_descente"] = "DESCENTE"
+        var["etat_systeme"] = "CHANGEMENT_ALT"
+        var["taux_monte"] = -1 * var["taux_monte"]
+    
+    # Augmentation de la vitesse tant que l'altitude désirée n'est pas atteinte
+    if var["etat_systeme"] == "CHANGEMENT_ALT":
+        print("etat_systeme :", var["etat_systeme"])
+
+        # 1 m/min -> 0.0546807 pieds/s
+        # var["taux_monte"] = np.round(var["taux_monte"], 1) # Résolution
+        var["taux_monte_convertit"] = var["taux_monte"]*0.0546807 # 1 m/min -> 0.0546807 pieds/s
+        # var["taux_monte_convertit"] = np.round(var["taux_monte_convertit"], 1) # Résolution               
+
+        # Calcul de la nouvelle altitude
+        var["altitude_actuelle"] += var["taux_monte_convertit"]*dt
+        # var["altitude_actuelle"] = np.round(var["altitude_actuelle"], -1) # Résolution
+
+        # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
+        # var["angle_attaque"] = np.round(var["angle_attaque"], 1) # Résolution
+        var["vitesse_actuelle"] = abs(var["taux_monte_convertit"]/math.sin(math.radians(var["angle_attaque"]))) # V = taux de montée/sin(angle d'attaque)
+        # var["vitesse_actuelle"] = np.round(var["vitesse_actuelle"], 1) # Résolution
+
+        # Conversion de la vitesse actuelle (pieds/s -> kt)
+        var["vitesse_actuelle_convertit"] = abs(var["vitesse_actuelle"]*0.592484) # 1 pieds/s -> 0.592484 kt 
+        # var["vitesse_actuelle_convertit"] = np.round(var["vitesse_actuelle_convertit"], 1) # Résolution
+
+        # Calcul la puissance (taux_monte = 5.468 # 100m/min -> 5.48pieds/s)
+        var["puissance_moteur"] = abs(var["taux_monte_convertit"] / 5.48 * 10)
+        # var["puissance_moteur"] = np.round(var["puissance_moteur"], 1) # Résolution
+
+        #taux_monte -= taux_monte_convertit
+        # À l’approche de l’altitude désirée atteinte, la vitesse doit commencer à se décroître pour s’annuler à l’altitude désirée
+        if abs(var["altitude_actuelle"] - var["altitude_desiree"]) < 1000:  
+            deceleration = abs(var["altitude_actuelle"] - var["altitude_desiree"]) / 1000
+            var["taux_monte_convertit"] = (var["taux_monte_convertit"] * deceleration) + 0.01
+
+        if var["altitude_actuelle"] > var["altitude_desiree"] and var["mode_descente"] == "MONTÉE":
+            var["altitude_actuelle"] = var["altitude_desiree"]
+
+        if var["altitude_actuelle"] < var["altitude_desiree"] and var["mode_descente"] == "DESCENTE":
+            var["altitude_actuelle"] = var["altitude_desiree"]
  
 
-        #********************************************** GROUND ******************************************
+    #*************************************** VOL CROISIÈRE *********************************************************
+    # Sortie de l'état si l'altitude désirée est atteinte
+    if var["altitude_actuelle"] == var["altitude_desiree"] or var["altitude_actuelle"] == ALTITUDE_MAX:
+        var["etat_systeme"] = "VOL_CROISIÈRE"
+        # taux mis à zéro une fois l'altitude atteinte
+        var["taux_monte"] = 0.0 
+    
+    if var["altitude_actuelle"] == var["altitude_desiree"] == 0:
+        var["etat_systeme"] = "GROUND"
+        var["taux_monte"] = 0.0 
 
-        if etat_systeme == "GROUND":
-            # Vitesse initiale nulle
-            vitesse_actuelle_convertit = 0
+    
+    return var["altitude_actuelle"], var["vitesse_actuelle_convertit"], var["puissance_moteur"], var["etat_systeme"]
 
-            # Si l'utilisateur entre une valeur d'altitude désirée de 0
-            while altitude_desiree == 0:
-                altitude_desiree = float(input("Veuillez entrez une altitude supérieure à 0 : "))
+def boucle_principale():
+    last_frame = time.monotonic()
 
-            # Si angle d'attaque = 0, on a une division par zéro dans le calcul de vitesse
-            if angle_attaque <= 0:
-                angle_attaque = 5
-                print(f"Nouvel angle d'attaque : {angle_attaque}")
+    while True:
+        # Appel de la fonction qui reçois les inputs de l'utilisateur 
+        lire_input(var)
 
-            # Si angle d'attaque > 15, angle de décrochage (Chute libre)
-            while angle_attaque >= 15:
-                angle_attaque = float(input("**ALERTE : CHUTE LIBRE** Entrez un nouvel angle d'attaque : "))
+        # Fonction du temps
+        now = time.monotonic() 
+        dt = now - last_frame
+        last_frame = now
 
-            # Si les deux entrées sont nulles, fournir un taux de montée et un angle d'attaque
-            if taux_monte == 0 and angle_attaque == 0:
-                taux_monte = 100
-                print(f"Nouveau taux de montée : {taux_monte}")
-                angle_attaque = 10
-                print(f"Nouvel angle d'attaque : {angle_attaque}")
+        # Appel de la fonction qui déterminera le prochain état
+        #prochain_etat(var, dt)
+        print(prochain_etat(var, dt))
 
-            # Changement d'état si l'altitude désirée est fournie
-            else:
-                etat_systeme = "CHANGEMENT_ALT"
+        # Rafraichissement
+        time.sleep(0.005)
+        # print(var) # Juste pour les tests
 
-
-        #************************************** CHANG. ALTITUDE ******************************************
-
-        elif etat_systeme == "CHANGEMENT_ALT":
-            #Augmentation de la vitesse tant que l'altitude désirée n'est pas atteinte
-            while altitude_actuelle < altitude_desiree:
-                time.sleep(1)
-                temps_ecoule += 1
-
-                # 1 m/min -> 0.0546807 pieds/s
-                taux_monte_convertit = taux_monte*0.0546807 # 1 m/min -> 0.0546807 pieds/s
-
-                # Calcul de la nouvelle altitude
-                altitude_actuelle += taux_monte_convertit*temps_ecoule
-
-                # Calcul de la vitesse en fonction de la puissance moteur (V = TM/sin(angle))
-                vitesse_actuelle = taux_monte_convertit/math.sin(math.radians(angle_attaque)) # V = taux de montée/sin(angle d'attaque)
-
-                # Conversion de la vitesse actuelle (pieds/s -> kt)
-                vitesse_actuelle_convertit = vitesse_actuelle*0.592484 # 1 pieds/s -> 0.592484 kt 
-
-                # Calcul la puissance (taux_monte = 5.468 # 100m/min -> 5.48pieds/s)?
-                # À faire 
+# Fonction qui reçois les inputs de l'utilisateur 
+def lire_input(var): 
+    var["altitude_desiree"] = 1500
+    var["taux_monte"] = 700 
+    var["angle_attaque"] = 12
 
 
-                # À l’approche de l’altitude désirée atteinte, la vitesse doit commencer à se décroître pour s’annuler à l’altitude désirée (méthode par pallier).
-                if altitude_desiree - altitude_actuelle < 2000:  #if altitude_actuelle >= (altitude_desiree - 2000):
-                    time.sleep(1)
-                    temps_ecoule += 1
-                    taux_monte -= 0.5*taux_monte_convertit
 
-                    if altitude_actuelle == altitude_desiree: 
-                        # taux mis à zéro une fois l'altitude atteinte
-                        taux_monte = 0.0    
+"""
+    #Imputs de l'utilisateur 
+        altitude_desiree = float(input("Entrez l'altitude désirée (pieds) : "))
+        taux_monte = float(input("Entrez le taux de montée (m/min) : "))
+        angle_attaque = float(input("Entrez l'angle d'attaque (degrés) : "))
 
-                        # Sortie de l'état si l'altitude désirée est atteinte
-                        if altitude_actuelle >= altitude_desiree or altitude_actuelle >= 40000:
-                            etat_systeme = "VOL_CROISIÈRE"
-
-            # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
-                print(f"Altitude actuelle (pieds) : {altitude_actuelle}")
-                print(f"Vitesse actuelle (kt) : {vitesse_actuelle_convertit}")
-                print(f"Puissance moteur (W) : {puissance_moteur}")
-                print(f"État système : {etat_systeme}")
-                print(f"Temps écoulé (s) : {temps_ecoule}")
-
-        #*************************************** VOL CROISIÈRE ******************************************
-
-        elif etat_systeme == "VOL_CROISIÈRE":  
-            # taux mis à zéro une fois l'altitude atteinte
-            #taux_monte = 0.0  
-            time.sleep(1)
-            temps_ecoule += 1
-
-            # Calcul la puissance (taux_monte = 5.468 # 100m/min -> 5.48pieds/s)?
-            # À faire 
-
-
-        #******************************************* AFFICHAGE **********************************************
-
-        # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
+    # Affichage des valeurs actuelles de l'altitude, de la vitesse et de la puissance du moteur
         print(f"Altitude actuelle (pieds) : {altitude_actuelle}")
         print(f"Vitesse actuelle (kt) : {vitesse_actuelle_convertit}")
         print(f"Puissance moteur (W) : {puissance_moteur}")
-        print(f"État système : {etat_systeme}")
+        print(f"État système : {var_systeme}")
         print(f"Temps écoulé (s) : {temps_ecoule}")
-
-
-
-"""
-# Demander à l'utilisateur l'altitude désirée et le taux de montée
-altitude_desiree = float(input("Entrez l'altitude désirée en mètres : "))
-taux_de_montee = float(input("Entrez le taux de montée en mètres par seconde : "))
-
-# Définir la vitesse initiale et l'altitude initiale
-vitesse_initiale = 0
-altitude_initiale = 0
-
-# Boucle de simulation
-while altitude_initiale < altitude_desiree:
-    # Calculer la nouvelle altitude en fonction du taux de montée et du temps écoulé
-    altitude_initiale += taux_de_montee
-
-    # Si l'altitude de destination approche, réduire progressivement le taux de montée
-    if altitude_desiree - altitude_initiale < 1000 and taux_de_montee > 0:
-        taux_de_montee -= 0.1*taux_de_montee
-
-    # Afficher l'altitude et le taux de montée à chaque itération
-    print("Altitude : {:.2f} m - Taux de montée : {:.2f} m/s".format(altitude_initiale, taux_de_montee))
-
-# Arrivé à l'altitude désirée, mettre le taux de montée à zéro
-taux_de_montee = 0
-
-# Afficher l'altitude et le taux de montée finaux
-print("Altitude : {:.2f} m - Taux de montée : {:.2f} m/s".format(altitude_initiale, taux_de_montee))
-
 """
 
 
+    #********************************************** GROUND CONTRAINTES ********************************************************
 
-"""
-import time
+    # if var["var_systeme"] == "GROUND":
+    #     # Si l'utilisateur entre une valeur d'altitude désirée de 0
+    #     while var["altitude_desiree"] == 0:
+    #         var["altitude_desiree"] = float(input("Veuillez entrez une altitude supérieure à 0 pieds : "))
 
-class PIDController:
-    def __init__(self, kp, ki, kd, setpoint):
-        self.kp = kp
-        self.ki = ki
-        self.kd = kd
-        self.setpoint = setpoint
-        self.last_error = 0
-        self.integral = 0
+    #     while var["altitude_desiree"] > ALTITUDE_MAX:
+    #         var["altitude_desiree"] = float(input("Veuillez entrez une altitude inférieure ou égale à 40000 pieds : "))
 
-    def update(self, measured_value):
-        error = self.setpoint - measured_value
-        self.integral += error
-        derivative = error - self.last_error
-        output = self.kp * error + self.ki * self.integral + self.kd * derivative
-        self.last_error = error
-        return output
+    #     # Si angle d'attaque = 0, on a une division par zéro dans le calcul de vitesse
+    #     if var["angle_attaque"] <= 0:
+    #         var["angle_attaque"] = 10
+    #         print(f"Nouvel angle d'attaque : {var['angle_attaque']}")
 
-# Variables initiales
-altitude = 0  # en mètres
-vitesse = 100  # en mètres par seconde
-altitude_desiree = 5000  # en mètres
-dt = 0.1  # en secondes
+    #     # Si angle d'attaque > 15, angle de décrochage (Chute libre)
+    #     while var["angle_attaque"] >= 15:
+    #         var["angle_attaque"] = float(input("**ALERTE : CHUTE LIBRE** Entrez un nouvel angle d'attaque : "))
 
-# Constantes du PID
-kp = 0.1
-ki = 0.01
-kd = 0.01
+    #     # Si les deux entrées sont nulles, fournir un taux de montée et un angle d'attaque
+    #     if var["taux_monte"] == 0 and var["angle_attaque"] == 0:
+    #         var["taux_monte"] = 100
+    #         print(f"Nouveau taux de montée : {var['taux_monte']}")
+    #         var["angle_attaque"] = 10
+    #         print(f"Nouvel angle d'attaque : {var['angle_attaque']}")
 
-# Initialisation du PID
-pid = PIDController(kp, ki, kd, altitude_desiree)
+    #     while var["taux_monte"] > 800:
+    #         var["taux_monte"] = float(input("Veuillez entrez un taux de montée inférieure ou égale à 800 m/min : "))
 
-# Boucle de contrôle
-while altitude < altitude_desiree:
-    altitude += vitesse * dt
-    vitesse += pid.update(altitude) * dt
-
-    # Limite de la vitesse à zéro à l'altitude désirée
-    if altitude >= altitude_desiree and vitesse > 0:
-        vitesse = 0
-
-    print(f"Altitude: {altitude:.2f} m, Vitesse: {vitesse:.2f} m/s")
-    time.sleep(dt)
-"""
+    #     # Changement d'état si l'altitude désirée est fournie
+    #     else:
+    #         var["var_systeme"] = "CHANGEMENT_ALT"
